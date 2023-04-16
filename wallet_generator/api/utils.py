@@ -1,6 +1,9 @@
 import hashlib
 import copy
+import logging
 from pywallet import wallet as w
+
+logger = logging.getLogger(__name__)
 
 
 def wallet_creator(
@@ -10,8 +13,12 @@ def wallet_creator(
     Returns:
         str: return the eth acount address
     """
-    seed = w.generate_mnemonic()
-    wallet = w.create_wallet(network=network, seed=seed, children=children)
+    try:
+        seed = w.generate_mnemonic()
+        wallet = w.create_wallet(network=network, seed=seed, children=children)
+    except Exception as error:
+        logger.error(f"Something went wrong with error {error}")
+        return False
     return wallet
 
 
@@ -24,8 +31,12 @@ def SHA256_hash_handler(field: str) -> str:
     Returns:
         str: hex digest for the input string
     """
-    hash_object = hashlib.sha256(field.encode())
-    hex_dig = hash_object.hexdigest()
+    try:
+        hash_object = hashlib.sha256(field.encode())
+        hex_dig = hash_object.hexdigest()
+    except Exception as error:
+        logger.error(f"Something went wrong with error {error}")
+        return False
     return hex_dig
 
 

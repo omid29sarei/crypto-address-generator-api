@@ -1,3 +1,4 @@
+import logging
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.request import Request
@@ -5,6 +6,8 @@ from django.shortcuts import get_object_or_404
 from wallet_generator.api.serializers import GenerateAddress
 from wallet_generator.api import utils
 from wallet_generator.api.models import Address
+
+logger = logging.getLogger(__name__)
 
 
 class AddressView(generics.GenericAPIView):
@@ -36,8 +39,8 @@ class AddressView(generics.GenericAPIView):
         address_object["created_at"] = retrieved_address_object.created_at
         return address_object
 
-    def get(self, request) -> Response:
-        """Will get a list of generated wallets
+    def get(self, request: Request) -> Response:
+        """Will get a list of generated wallets or single wallet info based on based on the input
 
         Args:
             request (Request): Request sent by the user
@@ -48,8 +51,12 @@ class AddressView(generics.GenericAPIView):
         wallet_id = request.GET.get("wallet_id", None)
         if wallet_id:
             account_details = self.prepare_get_address_by_id(wallet_id=wallet_id)
+            logger.info(f"Account details with id {wallet_id} object has been prepared")
         else:
             account_details = self.prepare_list_queryset()
+            logger.info("Account details object has been prepared for list addresses")
+
+        logger.info("All addresses are retrieved successfully!")
         return Response(
             {
                 "Success": True,
@@ -59,7 +66,7 @@ class AddressView(generics.GenericAPIView):
             status=status.HTTP_200_OK,
         )
 
-    def post(self, request) -> Response:
+    def post(self, request: Request) -> Response:
         """This endpoint will create a wallet based on the acronym passed
 
         Args:
@@ -72,6 +79,7 @@ class AddressView(generics.GenericAPIView):
         accepted_network = ["BTC", "BTG", "BCH", "ETH", "LTC", "DASH", "DOGE"]
         is_network_supported = True if network.upper() in accepted_network else False
         if not is_network_supported:
+            logger.info(f"Unsupported acronym {network} was passed! ")
             return Response(
                 {
                     "Success": False,
@@ -80,12 +88,17 @@ class AddressView(generics.GenericAPIView):
                 status=status.HTTP_201_CREATED,
             )
         account_details = utils.wallet_creator(network=network)
+        logger.info(f"An wallet has been generated for {network}")
         encrypted_account_details = utils.encrypt_sensitive_fields(
             account_details=account_details
         )
+        logger.info(f"All the sensitive fields are encrypted!")
         serializer = self.add_address_serializers(data=encrypted_account_details)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        logger.info(
+            f"Serializers data is validated and the new address is being generated and saved within DB"
+        )
         return Response(
             {
                 "Success": True,
