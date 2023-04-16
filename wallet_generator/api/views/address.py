@@ -1,12 +1,40 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.request import Request
+from django.shortcuts import get_object_or_404
 from wallet_generator.api.serializers import GenerateAddress
 from wallet_generator.api import utils
+from wallet_generator.api.models import Address
 
 
 class AddressView(generics.GenericAPIView):
     add_address_serializers = GenerateAddress
+
+    def prepare_list_queryset(self):
+        query_set = Address.objects.all()
+        account_details = []
+        for address in query_set:
+            address_object = {}
+            address_object["id"] = address.id
+            address_object["coin"] = address.coin
+            address_object["seed"] = address.seed
+            address_object["private_key"] = address.private_key
+            address_object["public_key"] = address.public_key
+            address_object["address"] = address.address
+            address_object["created_at"] = address.created_at
+            account_details.append(address_object)
+        return account_details
+
+    def prepare_get_address_by_id(self, wallet_id):
+        retrieved_address_object = get_object_or_404(Address, pk=wallet_id)
+        address_object = {}
+        address_object["coin"] = retrieved_address_object.coin
+        address_object["seed"] = retrieved_address_object.seed
+        address_object["private_key"] = retrieved_address_object.private_key
+        address_object["public_key"] = retrieved_address_object.public_key
+        address_object["address"] = retrieved_address_object.address
+        address_object["created_at"] = retrieved_address_object.created_at
+        return address_object
 
     def get(self, request) -> Response:
         """Will get a list of generated wallets
@@ -17,8 +45,17 @@ class AddressView(generics.GenericAPIView):
         Returns:
             dict: TO BE FILLED LATER
         """
+        wallet_id = request.GET.get("wallet_id", None)
+        if wallet_id:
+            account_details = self.prepare_get_address_by_id(wallet_id=wallet_id)
+        else:
+            account_details = self.prepare_list_queryset()
         return Response(
-            {"Success": True, "data": []},
+            {
+                "Success": True,
+                "message": "All addresses are retrieved successfully!",
+                "account_details": account_details,
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -53,7 +90,7 @@ class AddressView(generics.GenericAPIView):
             {
                 "Success": True,
                 "message": "New wallet has been created successfully",
-                "network": network,
+                "coin": network,
                 "account_details": account_details,
             },
             status=status.HTTP_201_CREATED,

@@ -15,6 +15,3 @@ class Address(models.Model):
 
     def __str__(self) -> str:
         return self.address
-
-    def get_all_addresses(self):
-        self.objects.all()
