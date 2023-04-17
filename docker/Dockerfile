@@ -1,12 +1,20 @@
-FROM python:3.10
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
+FROM python:3.8-slim-bullseye
 
-WORKDIR /wallet_generator
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
-COPY . /wallet_generator/
+ENV HOST_SRC=.
+ENV CONTAINER_SRC=/wallet_generator
+RUN apt-get -y update && \
+    apt-get -y install \
+    && apt-get -y clean
 
+WORKDIR $CONTAINER_SRC
+
+COPY $HOST_SRC/requirements.txt ./requirements.txt
+
+RUN pip install -r ./requirements.txt
+
+COPY $HOST_SRC .
+
+WORKDIR $CONTAINER_SRC
 RUN mv docker/initializer.sh /initializer.sh
 RUN chmod +x /initializer.sh
 
