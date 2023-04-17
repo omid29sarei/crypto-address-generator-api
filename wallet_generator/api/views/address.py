@@ -59,7 +59,7 @@ class AddressView(generics.GenericAPIView):
         logger.info("All addresses are retrieved successfully!")
         return Response(
             {
-                "Success": True,
+                "success": True,
                 "message": "All addresses are retrieved successfully!",
                 "account_details": account_details,
             },
@@ -76,17 +76,27 @@ class AddressView(generics.GenericAPIView):
             Response: The response include a dict object with all the details of an account
         """
         network = request.data.get("network", None)
+        if not network:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Please specify the acronym!",
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
         accepted_network = ["BTC", "BTG", "BCH", "ETH", "LTC", "DASH", "DOGE"]
         is_network_supported = True if network.upper() in accepted_network else False
         if not is_network_supported:
             logger.info(f"Unsupported acronym {network} was passed! ")
             return Response(
                 {
-                    "Success": False,
+                    "success": False,
                     "error": f"Please choose a supported network. Supported networks are: {accepted_network}",
                 },
                 status=status.HTTP_201_CREATED,
             )
+
         account_details = utils.wallet_creator(network=network)
         logger.info(f"An wallet has been generated for {network}")
         encrypted_account_details = utils.encrypt_sensitive_fields(
@@ -101,7 +111,7 @@ class AddressView(generics.GenericAPIView):
         )
         return Response(
             {
-                "Success": True,
+                "success": True,
                 "message": "New wallet has been created successfully",
                 "coin": network,
                 "account_details": account_details,
