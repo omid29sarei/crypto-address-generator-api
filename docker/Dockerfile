@@ -4,14 +4,13 @@ ENV HOST_SRC=.
 ENV CONTAINER_SRC=/wallet_generator
 RUN apt-get -y update && \
     apt-get -y install \
-    && apt-get -y clean
+    build-essential 
 
 WORKDIR $CONTAINER_SRC
 
 COPY $HOST_SRC/requirements.txt ./requirements.txt
 
 RUN pip install -r ./requirements.txt
-
 COPY $HOST_SRC .
 
 WORKDIR $CONTAINER_SRC

@@ -10,7 +10,8 @@ Once the application is cloned successfully, Then navigate to the folder within 
 
 You need to run the commands below within your shell:</br>
 
-- `python -m venv ./venv` to install a virtual environment
+- `python3 -m venv ./venv` to install a virtual environment
+- `source ./venv/bin/activate` in order to activate the virtual environment
 - `pip install -r ./requirements.txt` to install all the dependencies.
   At this stage you should have the application running. However, you need to update the appropriate field/s within the file refer to the sample on `env.example`. for this example, You can just rename the file to `.env` and remove `.example`.
 
@@ -33,8 +34,6 @@ The command above, will migrate the database and run the application on `http://
 </br>
 
 ## Running Test
-
-### Back-end
 
 This will include testing the core functionalities of the application.
 
